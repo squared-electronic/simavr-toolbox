@@ -18,7 +18,7 @@ void SimTLP9202::OnSpiData(uint8_t Data) {
   }
 }
 
-uint8_t SimTLP9202::GetCurrentValue() const {
+const uint8_t SimTLP9202::GetCurrentValue() const {
   return LatchedData_;
 }
 

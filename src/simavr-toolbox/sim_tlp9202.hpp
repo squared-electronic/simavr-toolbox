@@ -9,7 +9,7 @@
 class SimTLP9202 {
  public:
   SimTLP9202(avr_t* avr, avr_irq_t* csPin);
-  uint8_t GetCurrentValue() const;
+  const uint8_t GetCurrentValue() const;
 
  private:
   using Fn = std::function<void(uint8_t)>;
