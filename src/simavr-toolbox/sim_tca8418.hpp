@@ -18,6 +18,8 @@ class SimTca8418 : public SimAvrI2CComponent {
   void AddKeyEvent(Event ev, uint8_t row, uint8_t col);
   void AddKeyEventCode(Event ev, uint8_t row, uint8_t col);
   void AddKeyPressAndRelease(uint8_t rawKeyCode);
+  void AddKeyPress(uint8_t rawKeyCode);
+  void AddKeyRelease(uint8_t rawKeyCode);
 
  private:
   enum register_t : uint8_t {

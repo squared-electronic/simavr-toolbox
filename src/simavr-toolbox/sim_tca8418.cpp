@@ -88,6 +88,16 @@ void SimTca8418::AddKeyPressAndRelease(uint8_t keyCode) {
   avr_cycle_timer_register(Avr_, when, CallLater, &PendingPresses_[keyCode]);
 }
 
+void SimTca8418::AddKeyPress(uint8_t rawKeyCode) {
+  auto pressCode = rawKeyCode | static_cast<uint8_t>(Event::Press);
+  AddKeyRawEvent(pressCode);
+}
+
+void SimTca8418::AddKeyRelease(uint8_t rawKeyCode) {
+  auto pressCode = rawKeyCode | static_cast<uint8_t>(Event::Release);
+  AddKeyRawEvent(pressCode);
+}
+
 void SimTca8418::IncrementSelectedRegisterMaybe() {
   // If Register w/r auto-increment is enabled in control register
   if ((Registers_.at(0x01) & 0x80) == 0x80) {
