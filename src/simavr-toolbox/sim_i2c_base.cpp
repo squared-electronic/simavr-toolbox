@@ -5,6 +5,11 @@ void FakeI2cCb(struct avr_irq_t *irq, uint32_t value, void *param) {
   (*cb)(value);
 }
 
+avr_cycle_count_t Fake(struct avr_t *avr, avr_cycle_count_t when, void *param) {
+  auto x = (IrqCallback *)param;
+  return (*x)(when);
+}
+
 const char *SimAvrI2CComponent::irq_names[MyIrqType::Count] = {
     [MyIrqType::Input] = "I2CIn",
     [MyIrqType::Output] = "I2COut",
@@ -72,4 +77,8 @@ void SimAvrI2CComponent::HandleAnyI2cMessage(uint32_t value) {
   }
 
   HandleI2CMessage(msg);
+}
+
+void SimAvrI2CComponent::RegisterTimer(IrqCallback cb, avr_cycle_count_t when) {
+  avr_cycle_timer_register(Avr_, when, &Fake, &cb);
 }

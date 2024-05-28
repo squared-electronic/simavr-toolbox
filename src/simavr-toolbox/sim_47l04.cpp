@@ -3,7 +3,6 @@
 #include "sim_47l04.h"
 
 #include <cstdint>
-#include <cstdio>
 #include <string>
 #include <thread>
 
