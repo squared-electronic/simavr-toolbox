@@ -76,11 +76,9 @@ void SimTca8418::AddKeyEvent(Event ev, uint8_t row, uint8_t col) {
 }
 
 void SimTca8418::AddKeyPressAndRelease(uint8_t keyCode) {
-  auto pressCode = keyCode | static_cast<uint8_t>(Event::Press);
-  AddKeyRawEvent(pressCode);
+  AddKeyPress(keyCode);
 
   auto releaseCode = static_cast<uint8_t>(Event::Release) | keyCode;
-
   auto releaseCb = std::bind(&SimTca8418::AddKeyRawEventAndClearPending, this, releaseCode);
   PendingPresses_.emplace(keyCode, releaseCb);
 
