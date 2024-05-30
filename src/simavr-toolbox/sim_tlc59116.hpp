@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -11,6 +12,7 @@ class SimTLC59116 final : public SimAvrI2CComponent {
   SimTLC59116(avr_t* avr, uint8_t i2cAddress);
   virtual void HandleI2CMessage(avr_twi_msg_t msg) override;
   virtual void Reset() override;
+  std::array<bool, 16> GetCurrentState() const;
 
  private:
   void ExecuteCommand();
