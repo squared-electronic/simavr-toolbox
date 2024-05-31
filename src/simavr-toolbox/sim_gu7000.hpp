@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "sim_avr.h"
@@ -12,6 +13,7 @@ class SimGu7000 final : public SimAvrI2CComponent {
   SimGu7000(avr_t* avr, avr_irq_t* busyPin, uint8_t i2cAddress);
   virtual void HandleI2CMessage(avr_twi_msg_t msg) override;
   virtual void Reset() override;
+  const std::string& CurrentDisplay() const;
 
  private:
   avr_irq_t* BusyPin_{nullptr};
@@ -19,4 +21,6 @@ class SimGu7000 final : public SimAvrI2CComponent {
   void PulseBusyPin();
   bool MaybeBusy_{false};
   std::vector<uint8_t> CommandBuffer_;
+  std::string Display_;
+  uint8_t Cursor = 0;
 };

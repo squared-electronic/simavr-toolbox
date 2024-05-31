@@ -1,16 +1,20 @@
 #include "sim_gu7000.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <ostream>
 
 #include "avr_twi.h"
+#include "sim_base.hpp"
 #include "sim_i2c_base.hpp"
 #include "sim_irq.h"
 #include "sim_time.h"
 
 SimGu7000::SimGu7000(avr_t* avr, avr_irq_t* busyPin, uint8_t i2cAddress)
-    : SimAvrI2CComponent(avr, i2cAddress), BusyPin_{busyPin} {}
+    : SimAvrI2CComponent(avr, i2cAddress), BusyPin_{busyPin} {
+  Reset();
+}
 
 void SimGu7000::HandleI2CMessage(avr_twi_msg_t msg) {
   if (MaybeBusy_) {
@@ -54,9 +58,51 @@ void SimGu7000::PulseBusyPin() {
 }
 
 void SimGu7000::ExecuteCommand() {
-  // use CommandBuffer_
+  if (CommandBuffer_.empty()) {
+    debug_log("Warning: Empty Command Buffer");
+  } else if (CommandBuffer_.size() == 1) {
+    auto b = CommandBuffer_.front();
+    if (b >= 0x20 && b <= 0xFF) {
+      // Display Character
+      Display_.at(Cursor) = b;
+      Cursor += 1;
+    } else if (b == 0x08) {
+      // Backspace
+      if (Cursor > 0) {
+        Cursor -= 1;
+      }
+    } else if (b == 0x0B) {
+      // Home Position
+      Cursor = 0;
+    } else if (b == 0x0C) {
+      // Display Clear
+      std::fill(Display_.begin(), Display_.end(), ' ');
+    } else if (b == 0x09) {
+      // Horizontal Tab
+      Cursor += 1;
+    } else {
+      debug_log("Warning: Unknown Screen Command");
+    }
+  } else if (CommandBuffer_.size() == 2) {
+    auto a = CommandBuffer_[0];
+    auto b = CommandBuffer_[1];
+    if (a == 0x1B && b == 0x40) {
+      // Initialize Display
+      std::fill(Display_.begin(), Display_.end(), ' ');
+      Cursor = 0;
+    } else {
+      debug_log("Warning: Unknown Screen Command");
+    }
+  } else {
+    debug_log("Warning: Unknown Screen Command");
+  }
 }
 
 void SimGu7000::Reset() {
   CommandBuffer_.clear();
+  std::fill(Display_.begin(), Display_.end(), ' ');
+}
+
+const std::string& SimGu7000::CurrentDisplay() const {
+  return Display_;
 }
