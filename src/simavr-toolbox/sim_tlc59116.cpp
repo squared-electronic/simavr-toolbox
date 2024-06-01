@@ -12,7 +12,7 @@ SimTLC59116::SimTLC59116(avr_t* avr, uint8_t i2cAddress) : SimAvrI2CComponent(av
   Registers_.fill(0);
 }
 
-void SimTLC59116::HandleI2CMessage(avr_twi_msg_t message) {
+void SimTLC59116::HandleI2CMessage(const avr_twi_msg_t& message) {
   if (message.msg & TWI_COND_START) {
     if (State_ == State::Start) {
       auto mode_ = static_cast<I2CMode>(message.addr & 1);
@@ -52,6 +52,7 @@ void SimTLC59116::HandleI2CMessage(avr_twi_msg_t message) {
 
 void SimTLC59116::Reset() {
   CommandBuffer_.clear();
+  State_ = State::Start;
   AutoIncrement_ = false;
   SelectedRegister_ = 0;
 }
