@@ -44,7 +44,7 @@ I2cEeprom::I2cEeprom(avr_t *avr, bool a2, bool a1) : SimAvrI2CComponent(avr, Mak
   Reset();
 }
 
-void I2cEeprom::HandleI2CMessage(avr_twi_msg_t message) {
+void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   if (message.msg & TWI_COND_STOP) {
@@ -97,12 +97,12 @@ void I2cEeprom::HandleI2CMessage(avr_twi_msg_t message) {
     } else if (state_ == STARTED) {
       debug_log("Started: 0x%02x 0x%02x\n", operation_address_ + operation_address_counter_,
                 message.data);
-      (buffer_)[operation_address_ + operation_address_counter_] = message.data;
+      buffer_.at(operation_address_ + operation_address_counter_) = message.data;
       operation_address_counter_++;
     }
   } else if (message.msg & TWI_COND_READ) {
     // Simple return of selected byte.
-    uint8_t current_byte = (buffer_)[operation_address_ + operation_address_counter_];
+    uint8_t current_byte = buffer_.at(operation_address_ + operation_address_counter_);
     debug_log("SIM::HandleI2cMessage: Responding to read at addr 0x%02x with byte %d\n",
               operation_address_ + operation_address_counter_, current_byte);
     operation_address_counter_++;

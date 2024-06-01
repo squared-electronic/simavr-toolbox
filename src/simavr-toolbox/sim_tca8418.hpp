@@ -12,7 +12,7 @@ class SimTca8418 : public SimAvrI2CComponent {
  public:
   static constexpr uint8_t I2C_ADDRESS = 0x68;
   SimTca8418(avr_t* avr, avr_irq_t* intIrq);
-  virtual void HandleI2CMessage(avr_twi_msg_t message) override;
+  virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
   virtual void Reset() override;
   enum class Event { Release = 0x00, Press = 0x80 };
   void AddKeyEvent(Event ev, uint8_t row, uint8_t col);
@@ -61,7 +61,7 @@ class SimTca8418 : public SimAvrI2CComponent {
     ReadRegister,
     WriteRegister,
   };
-  State State_;
+  State State_{State::Start};
   uint8_t SelectedRegister_{0};
   uint8_t UnacknowledgedInts_{0};
   std::array<uint8_t, 0x2F> Registers_;

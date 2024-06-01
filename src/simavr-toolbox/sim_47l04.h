@@ -9,11 +9,11 @@
 // MCU via i2c.
 class I2cEeprom : public SimAvrI2CComponent {
  public:
-  I2cEeprom(avr_t *avr, bool a0, bool a1);
+  I2cEeprom(avr_t* avr, bool a0, bool a1);
 
  private:
   // Handle a message fragment.
-  virtual void HandleI2CMessage(avr_twi_msg_t msg) override;
+  virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
 
   // Reset the state of this device.
   virtual void Reset() override;

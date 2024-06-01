@@ -21,11 +21,11 @@ SimTca8418::SimTca8418(avr_t* avr, avr_irq_t* intIrq)
   Registers_.fill(0);
 }
 
-void SimTca8418::HandleI2CMessage(avr_twi_msg_t message) {
+void SimTca8418::HandleI2CMessage(const avr_twi_msg_t& message) {
   if (message.msg & TWI_COND_START) {
     if (State_ == State::Start) {
-      auto mode_ = static_cast<I2CMode>(message.addr & 1);
-      if (mode_ == I2CMode::WRITE) {
+      auto mode = static_cast<I2CMode>(message.addr & 1);
+      if (mode == I2CMode::WRITE) {
         State_ = State::GiveRegisterAddress;
       } else {
         std::abort();

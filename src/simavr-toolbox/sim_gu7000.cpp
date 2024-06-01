@@ -16,7 +16,7 @@ SimGu7000::SimGu7000(avr_t* avr, avr_irq_t* busyPin, uint8_t i2cAddress)
   Reset();
 }
 
-void SimGu7000::HandleI2CMessage(avr_twi_msg_t msg) {
+void SimGu7000::HandleI2CMessage(const avr_twi_msg_t& msg) {
   if (MaybeBusy_) {
     // Debug to alert doing anything when busy pin was 1
     std::cout << "Write to display when busy" << std::endl;

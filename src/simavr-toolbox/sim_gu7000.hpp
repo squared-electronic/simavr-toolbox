@@ -11,7 +11,7 @@
 class SimGu7000 final : public SimAvrI2CComponent {
  public:
   SimGu7000(avr_t* avr, avr_irq_t* busyPin, uint8_t i2cAddress);
-  virtual void HandleI2CMessage(avr_twi_msg_t msg) override;
+  virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
   virtual void Reset() override;
   const std::string& CurrentDisplay() const;
 
