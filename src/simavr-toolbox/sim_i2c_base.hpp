@@ -22,7 +22,6 @@ class SimAvrI2CComponent {
   enum class I2CMode { WRITE = 0, READ };
   void SendToAvrI2CAck();
   void SendByteToAvrI2c(uint8_t byte);
-  void RegisterTimer(IrqCallback, avr_cycle_count_t when);
 
  private:
   avr_twi_msg_t Parseavr_twi_msg_t(uint32_t value);
