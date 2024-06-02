@@ -64,7 +64,7 @@ void SimGu7000::PulseBusyPin() {
 
 void SimGu7000::ExecuteCommand() {
   if (CommandBuffer_.empty()) {
-    debug_log("Warning: Empty Command Buffer");
+    // debug_log("Warning: Empty Command Buffer");
   } else if (CommandBuffer_.size() == 1) {
     auto b = CommandBuffer_.front();
     if (b >= 0x20 && b <= 0xFF) {
