@@ -8,7 +8,7 @@
 SimTLP9202::SimTLP9202(avr_t* avr, avr_irq_t* csPin) {
   CsIrq_ = csPin;
   SpiCb_ = std::bind(&SimTLP9202::OnSpiData, this, std::placeholders::_1);
-  auto spiOut = avr_io_getirq(avr, AVR_IOCTL_SPI_GETIRQ('0'), SPI_IRQ_OUTPUT);
+  auto spiOut = avr_io_getirq(avr, AVR_IOCTL_SPI_GETIRQ(0), SPI_IRQ_OUTPUT);
   avr_irq_register_notify(spiOut, IrqCb, &SpiCb_);
 }
 
