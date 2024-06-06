@@ -41,7 +41,7 @@ uint8_t MakeAddress(bool a2, bool a1) {
 }
 
 I2cEeprom::I2cEeprom(avr_t *avr, bool a2, bool a1) : SimAvrI2CComponent(avr, MakeAddress(a2, a1)) {
-  Reset();
+  ResetStateMachine();
 }
 
 void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
@@ -49,7 +49,7 @@ void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
 
   if (message.msg & TWI_COND_STOP) {
     state_ = STOPPED;
-    Reset();
+    ResetStateMachine();
   } else if (message.msg & TWI_COND_START) {
     if (!IsControlByte(message)) {
       // This should never be invoked in the threeboard code.
@@ -110,7 +110,7 @@ void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
   }
 }
 
-void I2cEeprom::Reset() {
+void I2cEeprom::ResetStateMachine() {
   operation_address_ = 0;
   operation_address_counter_ = 0;
   state_ = STOPPED;

@@ -62,13 +62,13 @@ void SimAvrI2CComponent::HandleAnyI2cMessage(uint32_t value) {
     // A start for a different device on the bus triggers a reset for this
     // device.
     if (msg.msg & TWI_COND_START) {
-      Reset();
+      ResetStateMachine();
     }
     return;
   }
 
   if (msg.msg & TWI_COND_STOP) {
-    Reset();
+    ResetStateMachine();
   }
 
   HandleI2CMessage(msg);

@@ -38,7 +38,7 @@ void SimTca8418::HandleI2CMessage(const avr_twi_msg_t& message) {
     }
     SendToAvrI2CAck();
   } else if (message.msg & TWI_COND_STOP) {
-    Reset();
+    ResetStateMachine();
   } else if (message.msg & TWI_COND_WRITE) {
     SendToAvrI2CAck();
     if (State_ == State::GiveRegisterAddress) {
@@ -65,7 +65,7 @@ void SimTca8418::HandleI2CMessage(const avr_twi_msg_t& message) {
   }
 }
 
-void SimTca8418::Reset() {
+void SimTca8418::ResetStateMachine() {
   State_ = State::Start;
   SelectedRegister_ = 0;
 }

@@ -15,7 +15,7 @@ class SimAvrI2CComponent {
   SimAvrI2CComponent(avr_t *avr, uint8_t i2cAddress);
   ~SimAvrI2CComponent();
   virtual void HandleI2CMessage(const avr_twi_msg_t &msg) = 0;
-  virtual void Reset() = 0;
+  virtual void ResetStateMachine() = 0;
 
  protected:
   avr_t *Avr_{nullptr};

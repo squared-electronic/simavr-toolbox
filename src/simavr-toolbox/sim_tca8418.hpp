@@ -13,7 +13,7 @@ class SimTca8418 : public SimAvrI2CComponent {
   static constexpr uint8_t I2C_ADDRESS = 0x68;
   SimTca8418(avr_t* avr, avr_irq_t* intIrq);
   virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
-  virtual void Reset() override;
+  virtual void ResetStateMachine() override;
   enum class Event { Release = 0x00, Press = 0x80 };
   void AddKeyEvent(Event ev, uint8_t row, uint8_t col);
   void AddKeyEventCode(Event ev, uint8_t row, uint8_t col);

@@ -16,7 +16,7 @@ class I2cEeprom : public SimAvrI2CComponent {
   virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
 
   // Reset the state of this device.
-  virtual void Reset() override;
+  virtual void ResetStateMachine() override;
 
   // Storage for the data in this EEPROM.
   std::array<uint8_t, 4096> buffer_;
