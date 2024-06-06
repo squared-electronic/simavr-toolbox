@@ -11,7 +11,7 @@ class SimTLC59116 final : public SimAvrI2CComponent {
  public:
   SimTLC59116(avr_t* avr, uint8_t i2cAddress);
   virtual void HandleI2CMessage(const avr_twi_msg_t& msg) override;
-  virtual void Reset() override;
+  virtual void ResetStateMachine() override;
   std::array<uint8_t, 16> GetCurrentState() const;
 
  private:

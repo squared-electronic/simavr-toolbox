@@ -26,7 +26,7 @@ void SimTLC59116::HandleI2CMessage(const avr_twi_msg_t& message) {
     }
     SendToAvrI2CAck();
   } else if (message.msg & TWI_COND_STOP) {
-    Reset();
+    ResetStateMachine();
   } else if (message.msg & TWI_COND_WRITE) {
     SendToAvrI2CAck();
     if (State_ == State::GiveRegisterAddress) {
@@ -50,7 +50,7 @@ void SimTLC59116::HandleI2CMessage(const avr_twi_msg_t& message) {
   }
 }
 
-void SimTLC59116::Reset() {
+void SimTLC59116::ResetStateMachine() {
   CommandBuffer_.clear();
   State_ = State::Start;
   AutoIncrement_ = false;
