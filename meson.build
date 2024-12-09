@@ -4,6 +4,7 @@ src = files(
   'src/simavr-toolbox/ds3231_virt.cpp',
   'src/simavr-toolbox/hd44780.cpp',
   'src/simavr-toolbox/sim_47l04.cpp',
+  'src/simavr-toolbox/sim_base.cpp',
   'src/simavr-toolbox/sim_bouncy_switch.cpp',
   'src/simavr-toolbox/sim_gu7000.cpp',
   'src/simavr-toolbox/sim_i2c_base.cpp',
@@ -20,6 +21,7 @@ simavr_drp = dependency('simavr', native: true)
 simavr_toolbox_lib = shared_library(
   'simavr-toolbox',
   src,
+  native: true,
   include_directories: inc,
   dependencies: [simavr_drp],
 )
