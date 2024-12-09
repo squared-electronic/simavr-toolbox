@@ -43,7 +43,7 @@ void SimTLC59116::HandleI2CMessage(const avr_twi_msg_t& message) {
           SelectedRegister_ = 0;
         }
       }
-      // debug_log("Wrote Register %02x = %02X\n", SelectedRegister_, message.data);
+      // sim_debug_log("Wrote Register %02x = %02X\n", SelectedRegister_, message.data);
     }
   } else if (message.msg & TWI_COND_READ) {
     std::abort();

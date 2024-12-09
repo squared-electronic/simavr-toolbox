@@ -26,3 +26,5 @@ void SimTLP9202::IrqCb(struct avr_irq_t* irq, uint32_t value, void* param) {
   auto cb = (Fn*)param;
   (*cb)(value);
 }
+
+void sim_debug_log(const char* fmt, ...) {}

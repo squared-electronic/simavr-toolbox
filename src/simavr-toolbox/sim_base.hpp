@@ -1,3 +1,3 @@
 #pragma once
 
-void debug_log(const char* fmt, ...);
+void sim_debug_log(const char* fmt, ...);

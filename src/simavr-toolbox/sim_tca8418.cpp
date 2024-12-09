@@ -49,13 +49,13 @@ void SimTca8418::HandleI2CMessage(const avr_twi_msg_t& message) {
       uint8_t oldData = Registers_.at(SelectedRegister_);
       Registers_.at(SelectedRegister_) = message.data;
       CheckSpecialCaseWrite(static_cast<register_t>(SelectedRegister_), oldData, message.data);
-      // debug_log("Wrote Register %02x = %02X\n", SelectedRegister_, message.data);
+      // sim_debug_log("Wrote Register %02x = %02X\n", SelectedRegister_, message.data);
       IncrementSelectedRegisterMaybe();
     }
   } else if (message.msg & TWI_COND_READ) {
     if (State_ == State::ReadRegister) {
       SendByteToAvrI2c(Registers_.at(SelectedRegister_));
-      // debug_log("Read Register %02x = %02X\n", SelectedRegister_,
+      // sim_debug_log("Read Register %02x = %02X\n", SelectedRegister_,
       // Registers_.at(SelectedRegister_));
       CheckSpecialCaseReads(static_cast<register_t>(SelectedRegister_));
       IncrementSelectedRegisterMaybe();

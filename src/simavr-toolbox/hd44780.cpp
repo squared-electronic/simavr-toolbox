@@ -63,7 +63,7 @@ static void _hd44780_clear_screen(hd44780_t *b) {
 static avr_cycle_count_t _hd44780_busy_timer(struct avr_t *avr, avr_cycle_count_t when,
                                              void *param) {
   hd44780_t *b = (hd44780_t *)param;
-  //	debug_log("%s called\n", __FUNCTION__);
+  //	sim_debug_log("%s called\n", __FUNCTION__);
   hd44780_set_flag(b, HD44780_FLAG_BUSY, 0);
   avr_raise_irq(b->irq + IRQ_HD44780_BUSY, 0);
   return 0;
@@ -127,7 +127,7 @@ static uint32_t hd44780_write_data(hd44780_t *b) {
   b->vram[b->cursor] = b->datapins;
 
   if (b->verbose) {
-    debug_log("hd44780_write_data %02x\n", b->datapins);
+    sim_debug_log("hd44780_write_data %02x\n", b->datapins);
   }
 
   if (hd44780_get_flag(b, HD44780_FLAG_S_C)) {  // display shift ?
@@ -153,7 +153,7 @@ static uint32_t hd44780_write_command(hd44780_t *b) {
       top--;
 
   if (b->verbose) {
-    debug_log("hd44780_write_command %02x\n", b->datapins);
+    sim_debug_log("hd44780_write_command %02x\n", b->datapins);
   }
 
   switch (top) {
@@ -185,7 +185,7 @@ static uint32_t hd44780_write_command(hd44780_t *b) {
       hd44780_set_flag(b, HD44780_FLAG_F, b->datapins & 4);
       if (!four && !hd44780_get_flag(b, HD44780_FLAG_D_L)) {
         if (b->verbose) {
-          debug_log("%s activating 4 bits mode\n", __FUNCTION__);
+          sim_debug_log("%s activating 4 bits mode\n", __FUNCTION__);
         }
         hd44780_set_flag(b, HD44780_FLAG_LOWNIBBLE, 0);
       }
@@ -245,7 +245,7 @@ static uint32_t hd44780_process_write(hd44780_t *b) {
   // write has 8 bits to process
   if (write) {
     if (hd44780_get_flag(b, HD44780_FLAG_BUSY)) {
-      debug_log("%s command %02x write when still BUSY\n", __FUNCTION__, b->datapins);
+      sim_debug_log("%s command %02x write when still BUSY\n", __FUNCTION__, b->datapins);
     }
     if (b->pinstate & (1 << IRQ_HD44780_RS))  // write data
       delay = hd44780_write_data(b);
@@ -282,7 +282,7 @@ static uint32_t hd44780_process_read(hd44780_t *b) {
       int busy = hd44780_get_flag(b, HD44780_FLAG_BUSY);
       b->readpins |= busy ? 0x80 : 0;
 
-      //	if (busy) debug_log("Good boy, guy's reading status byte\n");
+      //	if (busy) sim_debug_log("Good boy, guy's reading status byte\n");
       // now that we're read the busy flag, clear it and clear
       // the timer too
       hd44780_set_flag(b, HD44780_FLAG_BUSY, 0);
@@ -312,7 +312,7 @@ static avr_cycle_count_t _hd44780_process_e_pinchange(struct avr_t *avr, avr_cyc
 
 #if 0
 	uint16_t touch = b->oldstate ^ b->pinstate;
-	debug_log("LCD: %04x %04x %c %c %c %c\n", b->pinstate, touch,
+	sim_debug_log("LCD: %04x %04x %c %c %c %c\n", b->pinstate, touch,
 			b->pinstate & (1 << IRQ_HD44780_RW) ? 'R' : 'W',
 			b->pinstate & (1 << IRQ_HD44780_RS) ? 'D' : 'C',
 			hd44780_get_flag(b, HD44780_FLAG_LOWNIBBLE) ? 'L' : 'H',
@@ -400,8 +400,8 @@ void hd44780_init(struct avr_t *avr, struct hd44780_t *b, int width, int height)
   _hd44780_reset_cursor(b);
   _hd44780_clear_screen(b);
 
-  debug_log("LCD: %duS is %d cycles for your AVR\n", 37, (int)avr_usec_to_cycles(avr, 37));
-  debug_log("LCD: %duS is %d cycles for your AVR\n", 1, (int)avr_usec_to_cycles(avr, 1));
+  sim_debug_log("LCD: %duS is %d cycles for your AVR\n", 37, (int)avr_usec_to_cycles(avr, 37));
+  sim_debug_log("LCD: %duS is %d cycles for your AVR\n", 1, (int)avr_usec_to_cycles(avr, 1));
 }
 
 void hd44780_free(struct hd44780_t *b) {

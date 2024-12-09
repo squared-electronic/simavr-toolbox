@@ -101,9 +101,9 @@ void SimGu7000::ExecuteCommand() {
       s += c;
     }
   }
-  debug_log("Screen: \"%s\"", s.data());
+  sim_debug_log("Screen: \"%s\"", s.data());
   // if (CommandBuffer_.empty()) {
-  //   // debug_log("Warning: Empty Command Buffer");
+  //   // sim_debug_log("Warning: Empty Command Buffer");
   // } else if (CommandBuffer_.size() == 1) {
   //   auto b = CommandBuffer_.front();
   //   if (b >= 0x20 && b <= 0xFF) {
@@ -125,7 +125,7 @@ void SimGu7000::ExecuteCommand() {
   //     // Horizontal Tab
   //     Cursor += 1;
   //   } else {
-  //     debug_log("Warning: Unknown Screen Command");
+  //     sim_debug_log("Warning: Unknown Screen Command");
   //   }
   // } else if (CommandBuffer_.size() == 2) {
   //   auto a = CommandBuffer_[0];
@@ -135,10 +135,10 @@ void SimGu7000::ExecuteCommand() {
   //     std::fill(Display_.begin(), Display_.end(), ' ');
   //     Cursor = 0;
   //   } else {
-  //     debug_log("Warning: Unknown Screen Command");
+  //     sim_debug_log("Warning: Unknown Screen Command");
   //   }
   // } else {
-  //   debug_log("Warning: Unknown Screen Command");
+  //   sim_debug_log("Warning: Unknown Screen Command");
   // }
 }
 

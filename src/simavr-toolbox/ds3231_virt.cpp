@@ -132,13 +132,13 @@ static void ds3231_virt_update(const ds3231_virt_t *const p) {
   switch (p->reg_addr) {
     case DS3231_VIRT_SECONDS:
       if (ds3231_get_flag(p->nvram[DS3231_VIRT_CONTROL], DS3231_CONTROL_EOSC) == 0) {
-        debug_log("DS3231 clock ticking\n");
+        sim_debug_log("DS3231 clock ticking\n");
       } else {
-        debug_log("DS3231 clock stopped\n");
+        sim_debug_log("DS3231 clock stopped\n");
       }
       break;
     case DS3231_VIRT_CONTROL:
-      debug_log("DS3231 control register updated\n");
+      sim_debug_log("DS3231 control register updated\n");
       // TODO: Check if changing the prescaler resets the clock counter
       // and if so do it here?
       break;
@@ -312,8 +312,8 @@ static void ds3231_print_time(ds3231_virt_t *p) {
   uint8_t year = (p->nvram[DS3231_VIRT_YEAR] & 0xF) + (p->nvram[DS3231_VIRT_YEAR] >> 4) * 10;
 
   if (p->verbose)
-    debug_log("Time: %02i:%02i:%02i  Day: %i Date: %02i:%02i:%02i PM:%01x\n", hours, minutes,
-              seconds, day, date, month, year, pm);
+    sim_debug_log("Time: %02i:%02i:%02i  Day: %i Date: %02i:%02i:%02i PM:%01x\n", hours, minutes,
+                  seconds, day, date, month, year, pm);
 }
 
 static avr_cycle_count_t ds3231_virt_clock_tick(struct avr_t *avr, avr_cycle_count_t when,
@@ -362,7 +362,7 @@ static avr_cycle_count_t ds3231_virt_clock_tick(struct avr_t *avr, avr_cycle_cou
         if ((p->rtc + 1) % (DS3231_CLK_FREQ / 4) == 0) ds3231_virt_cycle_square_wave(p);
         break;
       default:
-        debug_log("DS3231 ERROR: PRESCALER MODE INVALID\n");
+        sim_debug_log("DS3231 ERROR: PRESCALER MODE INVALID\n");
         break;
     }
   }
@@ -379,8 +379,8 @@ static void ds3231_virt_clock_xtal_init(struct avr_t *avr, ds3231_virt_t *p) {
    */
   avr_cycle_timer_register_usec(avr, DS3231_CLK_PERIOD_US / 2, ds3231_virt_clock_tick, p);
 
-  debug_log("DS3231 clock crystal period %uS or %d cycles\n", DS3231_CLK_PERIOD_US,
-            (int)avr_usec_to_cycles(avr, DS3231_CLK_PERIOD_US));
+  sim_debug_log("DS3231 clock crystal period %uS or %d cycles\n", DS3231_CLK_PERIOD_US,
+                (int)avr_usec_to_cycles(avr, DS3231_CLK_PERIOD_US));
 }
 
 /*
@@ -397,7 +397,7 @@ static void ds3231_virt_in_hook(struct avr_irq_t *irq, uint32_t value, void *par
   if (v.u.twi.msg & TWI_COND_STOP) {
     if (p->selected) {
       // Wahoo, it was us!
-      if (p->verbose) debug_log("DS3231 stop\n\n");
+      if (p->verbose) sim_debug_log("DS3231 stop\n\n");
     }
     /* We should not zero the register address here because read mode uses the last
      * register address stored and write mode always overwrites it.
@@ -411,13 +411,13 @@ static void ds3231_virt_in_hook(struct avr_irq_t *irq, uint32_t value, void *par
    * meant to be us, and if so reply with an ACK bit
    */
   if (v.u.twi.msg & TWI_COND_START) {
-    // debug_log("DS3231 start attempt: 0x%02x, mask: 0x%02x,
+    // sim_debug_log("DS3231 start attempt: 0x%02x, mask: 0x%02x,
     // twi: 0x%02x\n", p->addr_base, p->addr_mask, v.u.twi.addr);
     p->selected = 0;
     // Ignore the read write bit
     if ((v.u.twi.addr >> 1) == (DS3231_VIRT_TWI_ADDR >> 1)) {
       // it's us !
-      if (p->verbose) debug_log("DS3231 start\n");
+      if (p->verbose) sim_debug_log("DS3231 start\n");
       p->selected = v.u.twi.addr;
       avr_raise_irq(p->irq + TWI_IRQ_INPUT, avr_twi_irq_msg(TWI_COND_ACK, p->selected, 1));
     }
@@ -435,13 +435,13 @@ static void ds3231_virt_in_hook(struct avr_irq_t *irq, uint32_t value, void *par
       // Write to the selected register (see p13. DS3231 datasheet for details)
       if (p->reg_selected) {
         if (p->verbose)
-          debug_log("DS3231 set register 0x%02x to 0x%02x\n", p->reg_addr, v.u.twi.data);
+          sim_debug_log("DS3231 set register 0x%02x to 0x%02x\n", p->reg_addr, v.u.twi.data);
         p->nvram[p->reg_addr] = v.u.twi.data;
         ds3231_virt_update(p);
         ds3231_virt_incr_addr(p);
         // No register selected so select one
       } else {
-        if (p->verbose) debug_log("DS3231 select register 0x%02x\n", v.u.twi.data);
+        if (p->verbose) sim_debug_log("DS3231 select register 0x%02x\n", v.u.twi.data);
         p->reg_selected = 1;
         p->reg_addr = v.u.twi.data;
       }
@@ -449,7 +449,7 @@ static void ds3231_virt_in_hook(struct avr_irq_t *irq, uint32_t value, void *par
     // Read transaction
     if (v.u.twi.msg & TWI_COND_READ) {
       if (p->verbose)
-        debug_log("DS3231 READ data at 0x%02x: 0x%02x\n", p->reg_addr, p->nvram[p->reg_addr]);
+        sim_debug_log("DS3231 READ data at 0x%02x: 0x%02x\n", p->reg_addr, p->nvram[p->reg_addr]);
       uint8_t data = p->nvram[p->reg_addr];
       ds3231_virt_incr_addr(p);
       avr_raise_irq(p->irq + TWI_IRQ_INPUT, avr_twi_irq_msg(TWI_COND_READ, p->selected, data));
