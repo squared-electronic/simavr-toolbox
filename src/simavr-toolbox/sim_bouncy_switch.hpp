@@ -11,7 +11,7 @@
 
 class SimBouncySwitch {
  public:
-  SimBouncySwitch(avr_t& avr, avr_irq_t& pin);
+  SimBouncySwitch(avr_t& avr, avr_irq_t& pin, bool closedValue);
 
   void CloseForMs(std::chrono::milliseconds ms);
   void OpenForMs(std::chrono::milliseconds ms);
@@ -39,4 +39,5 @@ class SimBouncySwitch {
   avr_t& Avr_;
   avr_irq_t& Pin_;
   TimerCb BounceCb_;
+  const bool ClosedValue_;
 };

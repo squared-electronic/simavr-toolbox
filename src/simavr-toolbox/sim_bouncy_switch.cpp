@@ -16,29 +16,30 @@ avr_cycle_count_t SimBouncySwitch::FakeCb(struct avr_t* avr, avr_cycle_count_t w
   return (*cb)(when);
 }
 
-SimBouncySwitch::SimBouncySwitch(avr_t& avr, avr_irq_t& pin) : Avr_(avr), Pin_(pin) {
+SimBouncySwitch::SimBouncySwitch(avr_t& avr, avr_irq_t& pin, bool closedValue)
+    : Avr_(avr), Pin_(pin), ClosedValue_(closedValue) {
   BounceCb_ = std::bind(&SimBouncySwitch::OnBounce, this, std::placeholders::_1);
 }
 
 void SimBouncySwitch::CloseForMs(std::chrono::milliseconds ms) {
-  PendingShifts_.emplace(true, ms);
-  PendingShifts_.emplace(false, ZeroMs);
+  PendingShifts_.emplace(ClosedValue_, ms);
+  PendingShifts_.emplace(!ClosedValue_, ZeroMs);
   RestartBounces();
 }
 
 void SimBouncySwitch::OpenForMs(std::chrono::milliseconds ms) {
-  PendingShifts_.emplace(false, ms);
-  PendingShifts_.emplace(true, ZeroMs);
+  PendingShifts_.emplace(!ClosedValue_, ms);
+  PendingShifts_.emplace(ClosedValue_, ZeroMs);
   RestartBounces();
 }
 
 void SimBouncySwitch::Close() {
-  PendingShifts_.emplace(true, ZeroMs);
+  PendingShifts_.emplace(ClosedValue_, ZeroMs);
   RestartBounces();
 }
 
 void SimBouncySwitch::Open() {
-  PendingShifts_.emplace(false, ZeroMs);
+  PendingShifts_.emplace(ClosedValue_, ZeroMs);
   RestartBounces();
 }
 

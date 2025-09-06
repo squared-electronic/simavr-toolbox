@@ -2,6 +2,7 @@ src = files(
     'ds3231_virt.cpp',
     'hd44780.cpp',
     'sim_47l04.cpp',
+    'sim_base.cpp',
     'sim_bouncy_switch.cpp',
     'sim_gu7000.cpp',
     'sim_i2c_base.cpp',
