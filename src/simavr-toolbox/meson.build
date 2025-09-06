@@ -12,13 +12,14 @@ src = files(
     'timer.cpp',
 )
 
-inc = include_directories('.')
+inc = include_directories('..')
 
 simavr_toolbox_lib = shared_library(
     'simavr-toolbox',
     src,
     include_directories: inc,
     dependencies: [simavr_drp],
+    native: true,
 )
 
 simavr_toolbox_dep = declare_dependency(
