@@ -1,17 +1,26 @@
 #include "sim_i2c_base.hpp"
 
-void FakeI2cCb(struct avr_irq_t *irq, uint32_t value, void *param) {
-  auto cb = (I2cMessageCallback *)param;
+void FakeI2cCb(struct avr_irq_t* irq, uint32_t value, void* param) {
+  auto cb = (I2cMessageCallback*)param;
   (*cb)(value);
 }
 
-const char *SimAvrI2CComponent::irq_names[MyIrqType::Count] = {
+const char* SimAvrI2CComponent::irq_names[MyIrqType::Count] = {
     [MyIrqType::Input] = "I2CIn",
     [MyIrqType::Output] = "I2COut",
 };
 
-SimAvrI2CComponent::SimAvrI2CComponent(avr_t *avr, uint8_t i2cAddress)
-    : Avr_(avr), I2cAddress_(i2cAddress) {
+bool SimAvrI2CComponent::MatchesI2cAddress(const avr_twi_msg_t& message, uint8_t i2cAddress) {
+  // Don't check the LSB which is W/R status
+  return (message.addr & 0xFE) == i2cAddress;
+}
+
+SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddress)
+    : SimAvrI2CComponent(
+          avr, [i2cAddress](avr_twi_msg_t* msg) { return MatchesI2cAddress(*msg, i2cAddress); }) {}
+
+SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, I2cAddressMatcher addressMatcher)
+    : Avr_(avr), AddressMatcher_(addressMatcher) {
   i2c_message_callback_ =
       std::bind(&SimAvrI2CComponent::HandleAnyI2cMessage, this, std::placeholders::_1);
 
@@ -50,15 +59,10 @@ avr_twi_msg_t SimAvrI2CComponent::Parseavr_twi_msg_t(uint32_t value) {
   return v.u.twi;
 }
 
-bool SimAvrI2CComponent::MatchesOurAddress(const avr_twi_msg_t &message) const {
-  // Don't check the LSB which is W/R status
-  return (message.addr & 0xFE) == I2cAddress_;
-}
-
 void SimAvrI2CComponent::HandleAnyI2cMessage(uint32_t value) {
   auto msg = Parseavr_twi_msg_t(value);
 
-  if (!MatchesOurAddress(msg)) {
+  if (!AddressMatcher_(&msg)) {
     // A start for a different device on the bus triggers a reset for this
     // device.
     if (msg.msg & TWI_COND_START) {
@@ -72,4 +76,8 @@ void SimAvrI2CComponent::HandleAnyI2cMessage(uint32_t value) {
   }
 
   HandleI2CMessage(msg);
+}
+
+void SimAvrI2CComponent::ResetStateMachine() {
+  // Do nothing.
 }
