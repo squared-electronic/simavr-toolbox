@@ -42,10 +42,9 @@ avr_t* FtxUiSimulatedAvr::LoadFirmware(std::string_view filename, bool gdb) {
   elf_firmware_t f;
   memset(&f, 0, sizeof(f));
 
-  sim_debug_log("Firmware pathname is %s\n", filename.data());
   elf_read_firmware(filename.data(), &f);
 
-  sim_debug_log("firmware %s f=%d mmcu=%s\n", filename.data(), (int)f.frequency, f.mmcu);
+  sim_debug_log("f=%d mmcu=%s\n", (int)f.frequency, f.mmcu);
 
   avr = avr_make_mcu_by_name(f.mmcu);
 

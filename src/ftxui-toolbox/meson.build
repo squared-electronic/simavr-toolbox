@@ -1,5 +1,6 @@
 src = files(
     'ftxui_simulated_avr.cpp',
+    'i2c_listener_renderer.cpp',
     'logs_renderer.cpp',
     'scroller.cpp',
 )
@@ -11,6 +12,7 @@ ftxui_toolbox_lib = shared_library(
     src,
     native: true,
     include_directories: inc,
+    cpp_args: ['-std=c++20'],
     dependencies: [ftxui_dep, simavr_drp, simavr_toolbox_dep],
 )
 

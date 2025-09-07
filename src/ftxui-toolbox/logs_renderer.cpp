@@ -10,7 +10,7 @@ class LogsRendererBase : public ftxui::ComponentBase {
       ftxui::Elements elements;
       Logs_.ForEach([&](const std::string& s) { elements.push_back(ftxui::text(s)); });
       auto content = vbox(std::move(elements));
-      return content | ftxui::flex_grow;
+      return content;
     });
 
     auto log_scroller = ftxui::Scroller(log_renderer);

@@ -12,7 +12,7 @@ const char* SimAvrI2CComponent::irq_names[MyIrqType::Count] = {
 
 bool SimAvrI2CComponent::MatchesI2cAddress(const avr_twi_msg_t& message, uint8_t i2cAddress) {
   // Don't check the LSB which is W/R status
-  return (message.addr & 0xFE) == i2cAddress;
+  return (message.addr >> 1) == i2cAddress;
 }
 
 SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddress)

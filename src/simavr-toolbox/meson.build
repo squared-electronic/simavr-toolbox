@@ -6,6 +6,7 @@ src = files(
     'sim_bouncy_switch.cpp',
     'sim_gu7000.cpp',
     'sim_i2c_base.cpp',
+    'sim_i2c_listener.cpp',
     'sim_tca8418.cpp',
     'sim_tlc59116.cpp',
     'sim_tlp9202.cpp',
@@ -19,6 +20,7 @@ simavr_toolbox_lib = shared_library(
     src,
     include_directories: inc,
     dependencies: [simavr_drp],
+    cpp_args: ['-std=c++20'],
     native: true,
 )
 
