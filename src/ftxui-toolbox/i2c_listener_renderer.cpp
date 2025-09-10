@@ -1,10 +1,23 @@
 #include "i2c_listener_renderer.hpp"
 
+#include <array>
+#include <cstdlib>
 #include <format>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/color.hpp>
 #include <simavr-toolbox/sim_i2c_listener.hpp>
+#include <unordered_map>
+
+static const std::array<ftxui::Color, 5> Colors = {
+    ftxui::Color::Cyan,   ftxui::Color::Red,       ftxui::Color::Green1,
+    ftxui::Color::Yellow, ftxui::Color::BlueLight,
+};
+
+ftxui::Color RandomColor() {
+  return Colors[rand() % Colors.size()];
+}
 
 class I2CListenerRendererBase : public ftxui::ComponentBase {
  public:
@@ -30,8 +43,12 @@ class I2CListenerRendererBase : public ftxui::ComponentBase {
       std::string address_str = std::format("0x{:02X}", msg.Address);
       std::string message_str = RenderMessage(msg);
 
+      if (!AddressColorMap_.contains(msg.Address)) {
+        AddressColorMap_[msg.Address] = RandomColor();
+      }
+
       message_elements.push_back(ftxui::hbox(
-          {ftxui::text(address_str) | ftxui::color(ftxui::Color::Cyan) | ftxui::bold,
+          {ftxui::text(address_str) | ftxui::color(AddressColorMap_.at(msg.Address)) | ftxui::bold,
            ftxui::text(": "), ftxui::text(message_str) | ftxui::color(ftxui::Color::White)}));
     }
 
@@ -68,6 +85,7 @@ class I2CListenerRendererBase : public ftxui::ComponentBase {
   }
 
   SimI2CListener i2c_listener_;
+  std::unordered_map<uint8_t /* Address  */, ftxui::Color> AddressColorMap_;
 };
 
 ftxui::Component I2CListenerRenderer(avr_t* avr) {
