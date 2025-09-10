@@ -43,6 +43,9 @@ void SimI2CListener::OnMessageFromAvr(avr_twi_msg_irq_t* value) {
       while (FinishedMessages_.size() > 100) {
         FinishedMessages_.pop_back();
       }
+      if (MessageCallbackFn_) {
+        MessageCallbackFn_.value()(*MessageInProgress_);
+      }
       MessageInProgress_ = std::nullopt;
     }
   }
@@ -58,4 +61,8 @@ void SimI2CListener::OnMessageToAvr(avr_twi_msg_irq_t* value) {
 
 const SimI2CListener::FinishedMessages& SimI2CListener::GetFinishedMessages() const {
   return FinishedMessages_;
+}
+
+void SimI2CListener::OnMessage(MessageCallbackFn fn) {
+  MessageCallbackFn_ = fn;
 }

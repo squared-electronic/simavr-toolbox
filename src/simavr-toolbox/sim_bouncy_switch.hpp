@@ -1,13 +1,12 @@
 #pragma once
 
+#include <sim_avr.h>
+#include <sim_irq.h>
+
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <queue>
-
-#include "sim_avr.h"
-#include "sim_avr_types.h"
-#include "sim_irq.h"
 
 class SimBouncySwitch {
  public:
@@ -33,6 +32,7 @@ class SimBouncySwitch {
   static int RandInt(int low, int high);
   static avr_cycle_count_t FakeCb(struct avr_t* avr, avr_cycle_count_t when, void* param);
   void RestartBounces();
+  void ChangePinValue(bool value);
   avr_cycle_count_t OnBounce(avr_cycle_count_t cyclesNow);
   std::queue<LevelShift> PendingShifts_;
   bool BouncingValue_;

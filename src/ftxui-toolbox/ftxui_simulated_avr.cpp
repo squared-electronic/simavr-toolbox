@@ -9,26 +9,46 @@
 #include <simavr/sim_gdb.h>
 #include <simavr/sim_irq.h>
 
+#include <cctype>
+#include <cstdint>
 #include <cstring>
+#include <format>
 #include <ftxui/component/task.hpp>
 #include <simavr-toolbox/sim_base.hpp>
+#include <string>
+#include <vector>
+
+struct UartLineBufferLogger {
+  UartLineBufferLogger(int serialNumber) : Number_{serialNumber} {};
+
+  void OnSerialByte(uint32_t value) {
+    LineBuffer_.push_back(value);
+    if (value == '\n') {
+      std::string s = std::format("[Serial {}] ", Number_);
+      for (uint8_t byte : LineBuffer_) {
+        if (std::isprint(byte) || std::isspace(byte)) {
+          s += (char)byte;
+        } else {
+          s += std::format("0x{:0X} ", byte);
+        }
+      }
+      LineBuffer_.clear();
+      sim_debug_log(s.c_str());
+    }
+  }
+
+  const int Number_;
+  std::vector<uint8_t> LineBuffer_;
+};
 
 void debug_log_uart0(struct avr_irq_t* irq, uint32_t value, void* param) {
-  static std::string uartBuffer = "[Serial 0] ";
-  uartBuffer += value;
-  if (uartBuffer.back() == '\n') {
-    sim_debug_log(uartBuffer.c_str());
-    uartBuffer = "[Serial 0] ";
-  }
+  static UartLineBufferLogger a{0};
+  a.OnSerialByte(value);
 }
 
 void debug_log_uart1(struct avr_irq_t* irq, uint32_t value, void* param) {
-  static std::string uartBuffer = "[Serial 1] ";
-  uartBuffer += value;
-  if (uartBuffer.back() == '\n') {
-    sim_debug_log(uartBuffer.c_str());
-    uartBuffer = "[Serial 1] ";
-  }
+  static UartLineBufferLogger a{1};
+  a.OnSerialByte(value);
 }
 
 FtxUiSimulatedAvr::FtxUiSimulatedAvr(std::string_view filename, bool gdb, TaskReceiver& receiver)

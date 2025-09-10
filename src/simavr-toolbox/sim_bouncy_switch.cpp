@@ -19,6 +19,7 @@ avr_cycle_count_t SimBouncySwitch::FakeCb(struct avr_t* avr, avr_cycle_count_t w
 SimBouncySwitch::SimBouncySwitch(avr_t& avr, avr_irq_t& pin, bool closedValue)
     : Avr_(avr), Pin_(pin), ClosedValue_(closedValue) {
   BounceCb_ = std::bind(&SimBouncySwitch::OnBounce, this, std::placeholders::_1);
+  ChangePinValue(!closedValue);
 }
 
 void SimBouncySwitch::CloseForMs(std::chrono::milliseconds ms) {
@@ -39,7 +40,7 @@ void SimBouncySwitch::Close() {
 }
 
 void SimBouncySwitch::Open() {
-  PendingShifts_.emplace(ClosedValue_, ZeroMs);
+  PendingShifts_.emplace(!ClosedValue_, ZeroMs);
   RestartBounces();
 }
 
@@ -53,11 +54,15 @@ void SimBouncySwitch::RestartBounces() {
   avr_cycle_timer_register_usec(&Avr_, timeUntilFirstBounceUsec, &FakeCb, &BounceCb_);
 }
 
+void SimBouncySwitch::ChangePinValue(bool value) {
+  avr_raise_irq(&Pin_, value);
+}
+
 avr_cycle_count_t SimBouncySwitch::OnBounce(avr_cycle_count_t cyclesNow) {
   // If we are done bouncing for this change, and should
   // se the signal to the final value
   if (auto& front = PendingShifts_.front(); front.BounceCount_ == 0) {
-    avr_raise_irq(&Pin_, front.TargetValue_);
+    ChangePinValue(front.TargetValue_);
     // If we have another shift scheduled, set to bounce again after the hold time of the
     // bounce we just finished
     auto holdTimeNow = front.HoldTimeUs_;
@@ -75,7 +80,7 @@ avr_cycle_count_t SimBouncySwitch::OnBounce(avr_cycle_count_t cyclesNow) {
     if (RandInt(0, 10) >= 6) {
       BouncingValue_ = !BouncingValue_;
     }
-    avr_raise_irq(&Pin_, BouncingValue_);
+    ChangePinValue(BouncingValue_);
     auto nextBounceTime = cyclesNow + avr_usec_to_cycles(&Avr_, RandInt(0, 1000));
     return nextBounceTime;
   }
