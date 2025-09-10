@@ -11,9 +11,7 @@
 // 24LCXX control code.
 constexpr uint8_t kControlCode = 0b10100000;
 
-#include "sim_base.hpp"
-
-std::string GetMessageType(const avr_twi_msg_t &message) {
+std::string GetMessageType(const avr_twi_msg_t& message) {
   std::string str;
   if (message.msg & TWI_COND_STOP) {
     str += "STOP";
@@ -30,7 +28,7 @@ std::string GetMessageType(const avr_twi_msg_t &message) {
   return str;
 }
 
-bool IsControlByte(const avr_twi_msg_t &message) {
+bool IsControlByte(const avr_twi_msg_t& message) {
   return message.addr & kControlCode;
 }
 
@@ -40,11 +38,11 @@ uint8_t MakeAddress(bool a2, bool a1) {
   return kControlCode | mask;
 }
 
-I2cEeprom::I2cEeprom(avr_t *avr, bool a2, bool a1) : SimAvrI2CComponent(avr, MakeAddress(a2, a1)) {
+I2cEeprom::I2cEeprom(avr_t* avr, bool a2, bool a1) : SimAvrI2CComponent(avr, MakeAddress(a2, a1)) {
   ResetStateMachine();
 }
 
-void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
+void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t& message) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   if (message.msg & TWI_COND_STOP) {
@@ -53,18 +51,12 @@ void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
   } else if (message.msg & TWI_COND_START) {
     if (!IsControlByte(message)) {
       // This should never be invoked in the threeboard code.
-      sim_debug_log(
-          "SIM::HandleI2cMessage: Received non-control start message, "
-          "returning\n");
       return;
     }
 
     // ACK the start message, parse out the read/write flag, and prepare to
     // receive the two address bytes.
     mode_ = static_cast<I2CMode>(message.addr & 1);
-
-    sim_debug_log("SIM::HandleI2cMessage: Received control byte, mode=%s\n",
-                  mode_ == I2CMode::READ ? "READ" : "WRITE");
 
     // The address word should only be sent for write operations. Read
     // operations are addressed first by starting a write operation and writing
@@ -88,23 +80,17 @@ void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t &message) {
     // Address writing always happens before any write occurs.
     if (state_ == ADDRESSING_HIGH) {
       operation_address_ |= (message.data << 8);
-      sim_debug_log("Address high: 0x%02x\n", operation_address_);
       state_ = ADDRESSING_LOW;
     } else if (state_ == ADDRESSING_LOW) {
       operation_address_ |= message.data;
-      sim_debug_log("Address low: 0x%02x\n", operation_address_);
       state_ = STARTED;
     } else if (state_ == STARTED) {
-      sim_debug_log("Started: 0x%02x 0x%02x\n", operation_address_ + operation_address_counter_,
-                    message.data);
       buffer_.at(operation_address_ + operation_address_counter_) = message.data;
       operation_address_counter_++;
     }
   } else if (message.msg & TWI_COND_READ) {
     // Simple return of selected byte.
     uint8_t current_byte = buffer_.at(operation_address_ + operation_address_counter_);
-    sim_debug_log("SIM::HandleI2cMessage: Responding to read at addr 0x%02x with byte %d\n",
-                  operation_address_ + operation_address_counter_, current_byte);
     operation_address_counter_++;
     SendByteToAvrI2c(current_byte);
   }
