@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 #include <deque>
 #include <functional>
 #include <optional>
@@ -36,6 +37,7 @@ class SimI2CListener {
  private:
   void OnMessageFromAvr(avr_twi_msg_irq_t* value);
   void OnMessageToAvr(avr_twi_msg_irq_t* value);
+  void Check(int i, uint8_t data);
 
   I2cStructMessageCallback OnMessageFromAvr_;
   I2cStructMessageCallback OnMessageToAvr_;

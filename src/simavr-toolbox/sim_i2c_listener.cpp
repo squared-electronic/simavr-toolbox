@@ -2,6 +2,7 @@
 
 #include <simavr/avr_twi.h>
 
+#include <cstdint>
 #include <simavr-toolbox/sim_base.hpp>
 
 void FakeI2cCb2(struct avr_irq_t* irq, uint32_t value, void* param) {
@@ -28,17 +29,24 @@ void SimI2CListener::OnMessageFromAvr(avr_twi_msg_irq_t* value) {
 
   if (msg.msg & TWI_COND_START) {
     if (MessageInProgress_) {
+      Check(0, msg.addr >> 1);
       MessageInProgress_->RepeatedStart = true;
     } else {
       MessageInProgress_.emplace(Message(msg.addr >> 1));
     }
   } else if (msg.msg & TWI_COND_WRITE) {
-    MessageInProgress_->MsgType = MessageType::Write;
-    MessageInProgress_->WriteBuffer.push_back(msg.data);
+    Check(1, msg.data);
+    if (MessageInProgress_.has_value()) {
+      MessageInProgress_->MsgType = MessageType::Write;
+      MessageInProgress_->WriteBuffer.push_back(msg.data);
+    }
   } else if (msg.msg & TWI_COND_READ) {
-    MessageInProgress_->MsgType = MessageType::Read;
+    Check(2, 0);
+    if (MessageInProgress_.has_value()) {
+      MessageInProgress_->MsgType = MessageType::Read;
+    }
   } else if (msg.msg & TWI_COND_STOP) {
-    if (MessageInProgress_) {
+    if (MessageInProgress_.has_value()) {
       FinishedMessages_.push_front(*MessageInProgress_);
       while (FinishedMessages_.size() > 100) {
         FinishedMessages_.pop_back();
@@ -55,7 +63,14 @@ void SimI2CListener::OnMessageToAvr(avr_twi_msg_irq_t* value) {
   const avr_twi_msg_t msg = value->u.twi;
 
   if (msg.msg & TWI_COND_READ) {
+    Check(3, msg.data);
     MessageInProgress_->ReadBuffer.push_back(msg.data);
+  }
+}
+
+void SimI2CListener::Check(int i, uint8_t data) {
+  if (!MessageInProgress_.has_value()) {
+    sim_debug_log("BAD I2C: %d ---> %d\n", i, (int)data);
   }
 }
 
