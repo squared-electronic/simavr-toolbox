@@ -21,6 +21,10 @@ simavr_toolbox_lib = shared_library(
     include_directories: inc,
     dependencies: [simavr_drp],
     cpp_args: ['-std=c++20'],
+    override_options: [
+        'buildtype=debug',
+        'optimization=0',
+    ],
     native: true,
 )
 

@@ -7,9 +7,9 @@
 
 // This class represents a simulated external EEPROM communicating with the main
 // MCU via i2c.
-class I2cEeprom : public SimAvrI2CComponent {
+class Sim47LXX : public SimAvrI2CComponent {
  public:
-  I2cEeprom(avr_t* avr, bool a0, bool a1);
+  Sim47LXX(avr_t* avr, bool a0, bool a1);
 
  private:
   // Handle a message fragment.
@@ -31,7 +31,8 @@ class I2cEeprom : public SimAvrI2CComponent {
     ADDRESSING_LOW,
     STARTED,
   };
-  EepromState state_;
+
+  EepromState state_{EepromState::STOPPED};
 
   // The read/write flag is sent in the control byte, and sets the mode of the
   // device for subsequent messages. We need to persist it for the duration of
@@ -40,8 +41,8 @@ class I2cEeprom : public SimAvrI2CComponent {
 
   // The address of the current operation. This is only fully valid when
   // state_ == STARTED.
-  uint16_t operation_address_;
+  uint16_t operation_address_{0};
 
   // Maintain the address of the last word accessed.
-  uint8_t operation_address_counter_;
+  uint8_t operation_address_counter_{0};
 };

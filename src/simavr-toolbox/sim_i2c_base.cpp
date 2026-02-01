@@ -1,5 +1,7 @@
 #include "sim_i2c_base.hpp"
 
+#include <cstdint>
+
 void FakeI2cCb(struct avr_irq_t* irq, uint32_t value, void* param) {
   auto cb = (I2cMessageCallback*)param;
   (*cb)(value);
@@ -15,12 +17,14 @@ bool SimAvrI2CComponent::MatchesI2cAddress(const avr_twi_msg_t& message, uint8_t
   return (message.addr >> 1) == i2cAddress;
 }
 
-SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddress)
-    : SimAvrI2CComponent(
-          avr, [i2cAddress](avr_twi_msg_t* msg) { return MatchesI2cAddress(*msg, i2cAddress); }) {}
+SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddressRightShifted)
+    : SimAvrI2CComponent(avr, i2cAddressRightShifted, [i2cAddressRightShifted](avr_twi_msg_t* msg) {
+        return MatchesI2cAddress(*msg, i2cAddressRightShifted);
+      }) {}
 
-SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, I2cAddressMatcher addressMatcher)
-    : Avr_(avr), AddressMatcher_(addressMatcher) {
+SimAvrI2CComponent::SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddressRightShifted,
+                                       I2cAddressMatcher addressMatcher)
+    : Avr_(avr), I2cAddress_{i2cAddressRightShifted}, AddressMatcher_(addressMatcher) {
   i2c_message_callback_ =
       std::bind(&SimAvrI2CComponent::HandleAnyI2cMessage, this, std::placeholders::_1);
 

@@ -15,7 +15,8 @@ class SimAvrI2CComponent {
   using I2cAddressMatcher = std::function<bool(avr_twi_msg_t*)>;
 
   SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddressRightShifted);
-  SimAvrI2CComponent(avr_t* avr, I2cAddressMatcher i2cAddressMatcher);
+  SimAvrI2CComponent(avr_t* avr, uint8_t i2cAddressRightShifted,
+                     I2cAddressMatcher i2cAddressMatcher);
   ~SimAvrI2CComponent();
   virtual void HandleI2CMessage(const avr_twi_msg_t& msg) = 0;
   virtual void ResetStateMachine();

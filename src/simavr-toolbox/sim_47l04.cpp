@@ -9,7 +9,7 @@
 #include "avr_twi.h"
 
 // 24LCXX control code.
-constexpr uint8_t kControlCode = 0b10100000;
+constexpr uint8_t kControlCode = 0b1010'0000;
 
 std::string GetMessageType(const avr_twi_msg_t& message) {
   std::string str;
@@ -35,14 +35,15 @@ bool IsControlByte(const avr_twi_msg_t& message) {
 uint8_t MakeAddress(bool a2, bool a1) {
   uint8_t mask = (a2 << 1) | (a1);
   mask <<= 2;
-  return kControlCode | mask;
+  uint8_t item = (kControlCode | mask) >> 1;
+  return item;
 }
 
-I2cEeprom::I2cEeprom(avr_t* avr, bool a2, bool a1) : SimAvrI2CComponent(avr, MakeAddress(a2, a1)) {
+Sim47LXX::Sim47LXX(avr_t* avr, bool a2, bool a1) : SimAvrI2CComponent(avr, MakeAddress(a2, a1)) {
   ResetStateMachine();
 }
 
-void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t& message) {
+void Sim47LXX::HandleI2CMessage(const avr_twi_msg_t& message) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   if (message.msg & TWI_COND_STOP) {
@@ -96,7 +97,7 @@ void I2cEeprom::HandleI2CMessage(const avr_twi_msg_t& message) {
   }
 }
 
-void I2cEeprom::ResetStateMachine() {
+void Sim47LXX::ResetStateMachine() {
   operation_address_ = 0;
   operation_address_counter_ = 0;
   state_ = STOPPED;
