@@ -9,51 +9,38 @@
 #include <simavr/sim_gdb.h>
 #include <simavr/sim_irq.h>
 
-#include <cctype>
 #include <cstdint>
 #include <cstring>
-#include <format>
 #include <ftxui/component/task.hpp>
 #include <simavr-toolbox/sim_base.hpp>
-#include <string>
-#include <vector>
-
-struct UartLineBufferLogger {
-  UartLineBufferLogger(int serialNumber) : Number_{serialNumber} {};
-
-  void OnSerialByte(uint32_t value) {
-    LineBuffer_.push_back(value);
-    if (value == '\n') {
-      std::string s = std::format("[Serial {}] ", Number_);
-      for (uint8_t byte : LineBuffer_) {
-        if (std::isprint(byte) || std::isspace(byte)) {
-          s += (char)byte;
-        } else {
-          s += std::format("0x{:0X} ", byte);
-        }
-      }
-      LineBuffer_.clear();
-      sim_debug_log(s.c_str());
-    }
-  }
-
-  const int Number_;
-  std::vector<uint8_t> LineBuffer_;
-};
-
-void debug_log_uart0(struct avr_irq_t* irq, uint32_t value, void* param) {
-  static UartLineBufferLogger a{0};
-  a.OnSerialByte(value);
-}
-
-void debug_log_uart1(struct avr_irq_t* irq, uint32_t value, void* param) {
-  static UartLineBufferLogger a{1};
-  a.OnSerialByte(value);
-}
 
 FtxUiSimulatedAvr::FtxUiSimulatedAvr(std::string_view filename, bool gdb, TaskReceiver& receiver)
     : S_{receiver->MakeSender()} {
   Avr_ = LoadFirmware(filename, gdb);
+
+  // disable the stdio dump, as we have a TUI output
+  uint32_t flags = 0;
+  avr_ioctl(Avr_, AVR_IOCTL_UART_GET_FLAGS('0'), &flags);
+  flags &= ~AVR_UART_FLAG_STDIO;
+  avr_ioctl(Avr_, AVR_IOCTL_UART_SET_FLAGS('0'), &flags);
+
+  auto receiver0 = [](struct avr_irq_t* irq, uint32_t value, void* param) {
+    auto that = (FtxUiSimulatedAvr*)param;
+    that->OnUartByteReceived(0, value);
+  };
+
+  auto receiver1 = [](struct avr_irq_t* irq, uint32_t value, void* param) {
+    auto that = (FtxUiSimulatedAvr*)param;
+    that->OnUartByteReceived(1, value);
+  };
+
+  // Debug log UART0
+  avr_irq_register_notify(avr_io_getirq(Avr_, AVR_IOCTL_UART_GETIRQ('0'), UART_IRQ_OUTPUT),
+                          receiver0, this);
+
+  // Debug log UART1
+  avr_irq_register_notify(avr_io_getirq(Avr_, AVR_IOCTL_UART_GETIRQ('1'), UART_IRQ_OUTPUT),
+                          receiver1, nullptr);
 }
 
 avr_t* FtxUiSimulatedAvr::LoadFirmware(std::string_view filename, bool gdb) {
@@ -76,20 +63,6 @@ avr_t* FtxUiSimulatedAvr::LoadFirmware(std::string_view filename, bool gdb) {
   avr_init(avr);
 
   avr_load_firmware(avr, &f);
-
-  // disable the stdio dump, as we have a TUI output
-  uint32_t flags = 0;
-  avr_ioctl(avr, AVR_IOCTL_UART_GET_FLAGS('0'), &flags);
-  flags &= ~AVR_UART_FLAG_STDIO;
-  avr_ioctl(avr, AVR_IOCTL_UART_SET_FLAGS('0'), &flags);
-
-  // Debug log UART0
-  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_UART_GETIRQ('0'), UART_IRQ_OUTPUT),
-                          debug_log_uart0, nullptr);
-
-  // Debug log UART1
-  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_UART_GETIRQ('1'), UART_IRQ_OUTPUT),
-                          debug_log_uart1, nullptr);
 
   if (gdb) {
     avr->gdb_port = 1234;
@@ -114,6 +87,10 @@ void FtxUiSimulatedAvr::BlockingLoop(std::atomic_bool& keepGoing,
 }
 
 void FtxUiSimulatedAvr::BeforeAvrCycleSideEffect() {
+  //
+}
+
+void FtxUiSimulatedAvr::OnUartByteReceived(int, uint8_t) {
   //
 }
 
