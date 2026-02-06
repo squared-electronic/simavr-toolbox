@@ -71,12 +71,11 @@ class I2CListenerRendererBase : public ftxui::ComponentBase {
   }
 
   static std::string RenderMessage(const SimI2CListener::Message& message, uint32_t count) {
-    auto x =
-        std::format("R/W: {} RS: {}",
-                    message.MsgType.has_value()
-                        ? message.MsgType.value() == SimI2CListener::MessageType::Read ? "R" : "W"
-                        : "?",
-                    message.RepeatedStart ? "Y" : "N");
+    auto x = std::format("R/W: {} RS: {}",
+                         message.Type.has_value()
+                             ? message.Type.value() == SimI2CListener::MessageType::Read ? "R" : "W"
+                             : "?",
+                         message.RepeatedStart ? "Y" : "N");
 
     if (!message.WriteBuffer.empty()) {
       x += std::format(" WD: ");

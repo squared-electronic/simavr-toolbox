@@ -5,27 +5,32 @@
 #include <cstdint>
 #include <simavr-toolbox/sim_base.hpp>
 
-void FakeI2cCb2(struct avr_irq_t* irq, uint32_t value, void* param) {
+avr_twi_msg_irq_t MakeTwiMsg(uint32_t value) {
   avr_twi_msg_irq_t msg;
   msg.u.v = value;
-  auto cb = (I2cStructMessageCallback*)param;
-  (*cb)(&msg);
+  return msg;
 }
 
 SimI2CListener::SimI2CListener(avr_t* avr) {
-  OnMessageFromAvr_ = std::bind(&SimI2CListener::OnMessageFromAvr, this, std::placeholders::_1);
+  auto fromAvrCb = [](struct avr_irq_t* irq, uint32_t value, void* param) {
+    auto that = (SimI2CListener*)param;
+    that->OnMessageFromAvr(MakeTwiMsg(value));
+  };
 
-  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_TWI_GETIRQ(0), TWI_IRQ_OUTPUT), FakeI2cCb2,
-                          &OnMessageFromAvr_);
+  auto toAvrCb = [](struct avr_irq_t* irq, uint32_t value, void* param) {
+    auto that = (SimI2CListener*)param;
+    that->OnMessageToAvr(MakeTwiMsg(value));
+  };
 
-  OnMessageToAvr_ = std::bind(&SimI2CListener::OnMessageToAvr, this, std::placeholders::_1);
+  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_TWI_GETIRQ(0), TWI_IRQ_OUTPUT), fromAvrCb,
+                          this);
 
-  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_TWI_GETIRQ(0), TWI_IRQ_INPUT), FakeI2cCb2,
-                          &OnMessageToAvr_);
+  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_TWI_GETIRQ(0), TWI_IRQ_INPUT), toAvrCb,
+                          this);
 }
 
-void SimI2CListener::OnMessageFromAvr(avr_twi_msg_irq_t* value) {
-  const avr_twi_msg_t msg = value->u.twi;
+void SimI2CListener::OnMessageFromAvr(const avr_twi_msg_irq_t& value) {
+  const avr_twi_msg_t msg = value.u.twi;
 
   if (msg.msg & TWI_COND_START) {
     if (MessageInProgress_) {
@@ -37,13 +42,13 @@ void SimI2CListener::OnMessageFromAvr(avr_twi_msg_irq_t* value) {
   } else if (msg.msg & TWI_COND_WRITE) {
     Check(1, msg.data);
     if (MessageInProgress_.has_value()) {
-      MessageInProgress_->MsgType = MessageType::Write;
+      MessageInProgress_->Type = MessageType::Write;
       MessageInProgress_->WriteBuffer.push_back(msg.data);
     }
   } else if (msg.msg & TWI_COND_READ) {
     Check(2, 0);
     if (MessageInProgress_.has_value()) {
-      MessageInProgress_->MsgType = MessageType::Read;
+      MessageInProgress_->Type = MessageType::Read;
     }
   } else if (msg.msg & TWI_COND_STOP) {
     if (MessageInProgress_.has_value()) {
@@ -59,8 +64,8 @@ void SimI2CListener::OnMessageFromAvr(avr_twi_msg_irq_t* value) {
   }
 }
 
-void SimI2CListener::OnMessageToAvr(avr_twi_msg_irq_t* value) {
-  const avr_twi_msg_t msg = value->u.twi;
+void SimI2CListener::OnMessageToAvr(const avr_twi_msg_irq_t& value) {
+  const avr_twi_msg_t msg = value.u.twi;
 
   if (msg.msg & TWI_COND_READ) {
     Check(3, msg.data);

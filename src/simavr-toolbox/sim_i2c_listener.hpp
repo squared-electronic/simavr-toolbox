@@ -1,17 +1,16 @@
 #pragma once
 
 #include <cstdint>
-#include <cstdlib>
 #include <deque>
 #include <functional>
 #include <optional>
 #include <simavr-toolbox/sim_i2c_base.hpp>
 #include <vector>
 
-using I2cStructMessageCallback = std::function<void(avr_twi_msg_irq_t*)>;
-
 class SimI2CListener {
  public:
+  SimI2CListener(avr_t* avr);
+
   enum class MessageType {
     Read,
     Write,
@@ -20,7 +19,7 @@ class SimI2CListener {
   struct Message {
     Message(uint8_t address) : Address{address} {}
     const uint8_t Address;
-    std::optional<MessageType> MsgType;
+    std::optional<MessageType> Type;
     bool RepeatedStart{false};
     std::vector<uint8_t> WriteBuffer;
     std::vector<uint8_t> ReadBuffer;
@@ -30,17 +29,14 @@ class SimI2CListener {
   using FinishedMessages = std::deque<Message>;
   using MessageCallbackFn = std::function<void(const Message&)>;
 
-  SimI2CListener(avr_t* avr);
   const FinishedMessages& GetFinishedMessages() const;
   void OnMessage(MessageCallbackFn fn);
 
  private:
-  void OnMessageFromAvr(avr_twi_msg_irq_t* value);
-  void OnMessageToAvr(avr_twi_msg_irq_t* value);
+  void OnMessageFromAvr(const avr_twi_msg_irq_t& value);
+  void OnMessageToAvr(const avr_twi_msg_irq_t& value);
   void Check(int i, uint8_t data);
 
-  I2cStructMessageCallback OnMessageFromAvr_;
-  I2cStructMessageCallback OnMessageToAvr_;
   FinishedMessages FinishedMessages_;
   std::optional<Message> MessageInProgress_;
   std::optional<MessageCallbackFn> MessageCallbackFn_;
