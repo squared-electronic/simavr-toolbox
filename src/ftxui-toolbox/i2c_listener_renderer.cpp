@@ -41,6 +41,7 @@ class I2CListenerRendererBase : public ftxui::ComponentBase {
 
     // Create a list of all messages
     std::vector<ftxui::Element> message_elements;
+    message_elements.reserve(ReceivedMessages_.size());
 
     for (const auto& [msg, count] : ReceivedMessages_) {
       std::string address_str = std::format("0x{:02X}", msg.Address);
