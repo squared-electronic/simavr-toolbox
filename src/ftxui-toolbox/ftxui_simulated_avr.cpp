@@ -18,11 +18,15 @@ FtxUiSimulatedAvr::FtxUiSimulatedAvr(std::string_view filename, bool gdb, TaskRe
     : S_{receiver->MakeSender()} {
   Avr_ = LoadFirmware(filename, gdb);
 
-  // disable the stdio dump, as we have a TUI output
+  // disable the stdio dump, as we have a byte handler
   uint32_t flags = 0;
   avr_ioctl(Avr_, AVR_IOCTL_UART_GET_FLAGS('0'), &flags);
   flags &= ~AVR_UART_FLAG_STDIO;
   avr_ioctl(Avr_, AVR_IOCTL_UART_SET_FLAGS('0'), &flags);
+
+  avr_ioctl(Avr_, AVR_IOCTL_UART_GET_FLAGS('1'), &flags);
+  flags &= ~AVR_UART_FLAG_STDIO;
+  avr_ioctl(Avr_, AVR_IOCTL_UART_SET_FLAGS('1'), &flags);
 
   auto receiver0 = [](struct avr_irq_t* irq, uint32_t value, void* param) {
     auto that = (FtxUiSimulatedAvr*)param;
@@ -40,7 +44,7 @@ FtxUiSimulatedAvr::FtxUiSimulatedAvr(std::string_view filename, bool gdb, TaskRe
 
   // Debug log UART1
   avr_irq_register_notify(avr_io_getirq(Avr_, AVR_IOCTL_UART_GETIRQ('1'), UART_IRQ_OUTPUT),
-                          receiver1, nullptr);
+                          receiver1, this);
 }
 
 avr_t* FtxUiSimulatedAvr::LoadFirmware(std::string_view filename, bool gdb) {
