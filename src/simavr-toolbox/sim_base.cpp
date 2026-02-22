@@ -35,6 +35,10 @@ void sim_debug_log(const char* fmt, ...) {
   va_end(myargs);
 }
 
+void sim_debug_log(std::string_view s) {
+  sim_debug_log(s.data());
+}
+
 void set_sim_debug_log(DebugLogFn fn) {
   gDebugLogFn = fn;
 }
